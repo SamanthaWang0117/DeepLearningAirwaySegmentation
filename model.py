@@ -121,7 +121,7 @@ class GraphAttentionLayer(nn.Module):
             return h_prime
 
 
-class gat(torch.nn.Module):
+class gat(nn.Module):
     def __init__(self, nfeat, nhid, nclass, dropout, alpha, nheads):
         super(gat, self).__init__()
         self.dropout = dropout
@@ -140,14 +140,59 @@ class gat(torch.nn.Module):
         x = F.relu(self.out_att(x, adj))
         return F.log_softmax(x, dim=1)
 
-class infer_model(nn.Module):
-    def __init__(self):
-        super(infer_model,self).__init__()
 
-    reshaped_gnn_feats = nn.reshape(tensor=self.gnn_final_feats, \
-                                    shape=nn.concat(values=[nn.slice(nn.shape(self.imgs), [0], [1]), \
-                                                            nn.slice(nn.shape(self.gnn_final_feats), [1], [1])],
-                                                    axis=0))
+class infer_model(nn.Module):
+    def __init__(self, input_d):
+        super(infer_model, self).__init__()
+        self.branch_inf_1 = nn.Conv2d(input_d, 64, (3, 3), stride=(1, 1), padding=(1, 1))
+        self.branch_inf_2 = nn.Conv2d(16, 32, (3, 3), stride=(1, 1), padding=(1, 1))
+        self.upsamp_2 = nn.Upsample(scale_factor=2, mode='nearest')
+        self.dropout = nn.Dropout(0.5)
+        self.output = nn.Conv2d(16 * 2, 16, (1, 1), padding=(0, 0))
+        self.output_final = nn.Conv2d(16 * 2, 1, (1, 1), padding=(0, 0))
+
+    def forward(self, x, spe_drop):
+        cnn1 = spe_drop[0]
+        cnn2 = spe_drop[1]
+        cnn3 = spe_drop[2]
+        cnn4 = spe_drop[3]
+        branch_1 = self.branch_inf_1(x)
+        branch_1 = F.relu(branch_1)
+        branch_1 = self.upsamp_2(branch_1)
+        cnn1_drop = self.dropout(cnn1)
+        part1_set = [cnn1_drop, branch_1]
+        part1 = torch.cat(part1_set, dim=1)
+        part_1_output = self.output(part1)
+
+        branch_2 = self.branch_inf_2(part_1_output)
+        branch_2 = F.relu(branch_2)
+        branch_2 = self.upsamp_2(branch_2)
+        cnn2_drop = self.dropout(cnn2)
+        part2_set = [cnn2_drop, branch_2]
+        part2 = torch.cat(part2_set, dim=1)
+        part_2_output = self.output(part2)
+
+        branch_3 = self.branch_inf_2(part_2_output)
+        branch_3 = F.relu(branch_3)
+        branch_3 = self.upsamp_2(branch_3)
+        cnn3_drop = self.dropout(cnn3)
+        part3_set = [cnn3_drop, branch_3]
+        part3 = torch.cat(part3_set, dim=1)
+        part_3_output = self.output(part3)
+
+        branch_4 = self.branch_inf_2(part_3_output)
+        branch_4 = F.relu(branch_4)
+        branch_4 = self.upsamp_2(branch_4)
+        cnn4_drop = self.dropout(cnn4)
+        part4_set = [cnn4_drop, branch_4]
+        part4 = torch.cat(part4_set, dim=1)
+
+        part_4_output = self.output_final(part4)
+
+        output_final = torch.sigmoid(part_4_output)
+
+        return output_final
+
 
 class vgn(torch.nn.Module):
     def __init__(self):
