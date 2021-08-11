@@ -194,56 +194,5 @@ class infer_model(nn.Module):
         return output_final
 
 
-class vgn(torch.nn.Module):
-    def __init__(self):
-        super(vgn, self).__init__()
-        self.buildmodel()
-        self.win_size
 
-    def buildmodel(self):
-        print("Building the model")
-        self.cnn_module()
-        self.gat()
-        self.infer_module()
-        self.build_optim()
-        print("Model built")
 
-    def cnn_module(self):
-        self.branch_1_1 = torch.nn.Conv2d(3, 64, (3, 3), stride=(1, 1), padding=(1, 1))
-        self.branch_1_2 = torch.nn.Conv2d(64, 64, (3, 3), stride=(1, 1), padding=(1, 1))
-
-        self.branch_2_1 = torch.nn.Conv2d(64, 128, (3, 3), stride=(1, 1), padding=(1, 1))
-        self.branch_2_2 = torch.nn.Conv2d(128, 128, (3, 3), stride=(1, 1), padding=(1, 1))
-
-        self.branch_3_1 = torch.nn.Conv2d(128, 256, (3, 3), stride=(1, 1), padding=(1, 1))
-        self.branch_3_2 = torch.nn.Conv2d(256, 256, (3, 3), stride=(1, 1), padding=(1, 1))
-        self.branch_3_3 = torch.nn.Conv2d(256, 256, (3, 3), stride=(1, 1), padding=(1, 1))
-
-        self.branch_4_1 = torch.nn.Conv2d(256, 512, (3, 3), stride=(1, 1), padding=(1, 1))
-        self.branch_4_2 = torch.nn.Conv2d(512, 512, (3, 3), stride=(1, 1), padding=(1, 1))
-        self.branch_4_3 = torch.nn.Conv2d(512, 512, (3, 3), stride=(1, 1), padding=(1, 1))
-
-        self.pooling = torch.nn.MaxPool2d(2, stride=2)
-
-        num_ch = 16
-
-        self.spe_1 = torch.nn.Conv2d(64, num_ch, (3, 3), stride=(1, 1), padding=(1, 1))
-        self.dropout = nn.Dropout(0.5)
-        self.spe_2 = torch.nn.Conv2d(128, num_ch, (3, 3), stride=(1, 1), padding=(1, 1))
-        self.spe_3 = torch.nn.Conv2d(256, num_ch, (3, 3), stride=(1, 1), padding=(1, 1))
-        self.spe_4 = torch.nn.Conv2d(512, num_ch, (3, 3), stride=(1, 1), padding=(1, 1))
-        self.upsamp_2 = torch.nn.Upsample(scale_factor=2, mode='nearest')
-        self.upsamp_4 = torch.nn.Upsample(scale_factor=4, mode='nearest')
-        self.upsamp_8 = torch.nn.Upsample(scale_factor=8, mode='nearest')
-
-    def grphaAttenLayer(self):
-        GraphAttentionLayer()
-
-    def gat(self):
-        gat()
-
-    def infer_model(self):
-        reshaped_gnn_feats = nn.reshape(tensor=self.gnn_final_feats, \
-                                        shape=nn.concat(values=[nn.slice(nn.shape(self.imgs), [0], [1]), \
-                                                                nn.slice(nn.shape(self.gnn_final_feats), [1], [1])],
-                                                        axis=0))
