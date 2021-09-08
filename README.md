@@ -3,6 +3,8 @@
 ## Dataset
 [Find the raw segmentation data here](https://liveuclac-my.sharepoint.com/:f:/g/personal/ucapanl_ucl_ac_uk/EvfbOxYzN6RJgcaLF6OmWLkBZQxHC13FXUiYF5ERX3oybA?e=xgsLI8)
 
+Please create a folder DRIVE_2 in your local machine under DeepLearingAirwaySegmentation
+
 
 Select data from the preprocessed dataset.  
 
