@@ -6,7 +6,7 @@ from torch import nn
 class vggNet(nn.Module):
     def __init__(self, num_classes):
         super(vggNet, self).__init__()
-        self.branch_1_1 = nn.Conv2d(3, 64, (3, 3), stride=(1, 1), padding=(1, 1))
+        self.branch_1_1 = nn.Conv2d(1, 64, (3, 3), stride=(1, 1), padding=(1, 1))
         self.branch_1_2 = nn.Conv2d(64, 64, (3, 3), stride=(1, 1), padding=(1, 1))
 
         self.branch_2_1 = nn.Conv2d(64, 128, (3, 3), stride=(1, 1), padding=(1, 1))
