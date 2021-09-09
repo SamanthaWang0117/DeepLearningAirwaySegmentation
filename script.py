@@ -129,7 +129,7 @@ test_loader = DataLoader(dataset=test_data, batch_size=1, shuffle=False)
 graphs_dict = {}
 
 if not os.path.exists(graph_file):
-    print("Creating graphs for training images..")
+    print("Creating graphs for testing images..")
     # Load images and labels and create a graph for each image
     for i, test_input in enumerate(test_loader):
         # Apply the pre-trained CNN model to the example image to get the probability map, intermediate CNN features,
