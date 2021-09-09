@@ -8,7 +8,6 @@ import skfmm
 import skimage
 from joblib.numpy_pickle_utils import xrange
 import networkx as nx
-# from torchvision.utils import save_image
 from tqdm import tqdm 
 
 def vgn_feature(prob_map,delta,geo_dist_thresh,min_coord=None,max_coord=None):
@@ -48,6 +47,7 @@ def vgn_feature(prob_map,delta,geo_dist_thresh,min_coord=None,max_coord=None):
 
     speed = vesselness
     speed = numpy.squeeze(speed)
+    # if the speed is too small, we set it as 0.00001
     speed[ speed < 0.00001 ] = 0.00001
     nodelist = graph.nodes
     for i,n in enumerate(nodelist):
@@ -71,8 +71,8 @@ def vgn_feature(prob_map,delta,geo_dist_thresh,min_coord=None,max_coord=None):
         for n_id in nodeidlist[i + 1:]:
             n_comp = nodelist[n_id]
             geo_dist = tt[int(n_comp['y']), int(n_comp['x'])]  # travel time
+            # if the speed is faster than the threshold, add it.
             if geo_dist < geo_dist_thresh:
-                ### Let's not use the weight= option, to keep things simple ###
                 graph.add_edge(n, n_id)
     return graph
 
