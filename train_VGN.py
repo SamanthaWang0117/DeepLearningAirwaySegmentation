@@ -110,14 +110,14 @@ if __name__ == "__main__":
         param.requires_grad = False
     cnn_model = cnn_model.to(device)
     print("Pre-trained CNN model loaded")
+    # BCEWithLogitsLoss() is used for generating the output in range (0,1)
     cnn_criterion = nn.BCEWithLogitsLoss()
 
     gat_model = GraphAttentionLayer(nfeat, 32, dropout, alpha).to(device)
     gat_criterion = nn.BCELoss()
 
     infer_model = infer_module(nfeat, dropout, alpha, device, base_dir).to(device)
-    # Use nn.BCELoss() if using a sigmoid before last layer of infer_model, otherwise use
-    # nn.BCEWithLogitsLoss().
+    
     infer_criterion = nn.BCEWithLogitsLoss()
 
     # We sum together the lists of the parameters of the CNN, GAT and inference modules,
@@ -173,8 +173,7 @@ if __name__ == "__main__":
             gat_output, gat_prob = gat_model(gnn_feats, adj_mat)
 
             ### The "tensorization" of gat_output ###
-            # first, change the shape of gat_output from [n_vertices, out_features]
-            # to [out_features, n_vertices]
+            # reshape the gat output
             gat_output = gat_output.permute(1, 0)
             # then, reshape gat_output from [out_features, n_vertices] to
             # [out_features, n_vertices_per_dim, n_vertices_per_dim]
@@ -214,6 +213,7 @@ if __name__ == "__main__":
             labels = labels.detach().cpu().numpy()
             dice_train = dice_coef(labels, infer_thresh)
             dice_train_list.append(dice_train)
+            # saving graph every 150 image
             if i_batch % 150 == 0:
                 print("Epoch %i of %i, training batch %i loss = %.5f" % (i, epoch, i_batch, sum_loss.item()))
                 print("cnn_loss = %.5f, gat_loss = %.5f, infer_loss = %.5f" % (
@@ -235,7 +235,8 @@ if __name__ == "__main__":
         mean_train_dice_list.append(np.mean(dice_train_list))
         print(f"[{epoch + 1}, {i + 1}], training loss: {np.mean(loss_list):.4f}")
         print(f"[{epoch + 1}, {i + 1}], train Dice: {np.mean(dice_train_list):.4f}")
-
+        
+        # Testing part
         with torch.no_grad():
             test_loss_list = []
             test_dice_list = []
@@ -252,7 +253,7 @@ if __name__ == "__main__":
                 test_prob_map, cnn_interm_feat, concat_feat = cnn_model(images)
 
                 cnn_loss_test = cnn_criterion(test_prob_map, labels)
-                # print(graphs_dict)
+      
                 # Acquire the input features to the GNN using the graph and the concatenated feature matrix from the CNN
                 tmp_graph = graphs_dict[name[0]]
                 n_vertices = tmp_graph.number_of_nodes()
@@ -291,6 +292,7 @@ if __name__ == "__main__":
                 labels = labels.detach().cpu().numpy()
                 dice_test = dice_coef(labels, infer_thresh)
                 test_dice_list.append(dice_test)
+                # save relative graphs every 50 image
                 if i_batch % 50 == 0:
                     print("Test batch %i of %i" % (i_batch, len(test_loader)))
                     save_image(torch.sigmoid(infer_out).detach().cpu(), os.path.join(vgn_test_result, f"ep{i}_{i_batch}_test_pred.png"),
